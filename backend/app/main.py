@@ -9,24 +9,7 @@ from app.api.tasks import router as tasks_router
 from app.api.planning import router as planning_router
 from app.api.calendar import router as calendar_router
 from app.api.notifications import router as notifications_router
-from app.database.db import Base, engine
-from app.database import models as db_models  # noqa: F401
-from app.utils.config import get_settings
-from app.services.auth_service import ensure_default_admin
-
-settings = get_settings()
-app = FastAPI(title=settings.app_name)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-Base.metadata.create_all(bind=engine)
-ensure_default_admin()
+from app.api.clients import router as clients_router
 
 app.include_router(auth_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
@@ -36,6 +19,8 @@ app.include_router(tasks_router, prefix="/api")
 app.include_router(planning_router, prefix="/api")
 app.include_router(calendar_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
+app.include_router(clients_router, prefix="/api")
+
 
 
 

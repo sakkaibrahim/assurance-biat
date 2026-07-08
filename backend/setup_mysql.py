@@ -19,6 +19,7 @@ from app.database.db import Base, engine
 from app.database.models import (
     AppointmentTable,
     ChatTable,
+    ClientTable,
     DocumentTable,
     NotificationTable,
     TaskTable,
@@ -34,6 +35,7 @@ TABLES_TO_CREATE = [
     TaskTable.__tablename__,
     AppointmentTable.__tablename__,
     NotificationTable.__tablename__,
+    ClientTable.__tablename__,
 ]
 
 

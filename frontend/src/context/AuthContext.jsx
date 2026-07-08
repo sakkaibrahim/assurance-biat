@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
         setUser(next)
       },
       isAuthenticated: Boolean(user),
+      isAdmin: Boolean(user?.is_admin),
       logout: () => setUser(null),
     }),
     [user],

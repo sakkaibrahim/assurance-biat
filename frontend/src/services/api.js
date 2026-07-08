@@ -39,5 +39,9 @@ export const updateAppointment = (appointmentId, payload) => api.put(`/calendar/
 export const deleteAppointment = (appointmentId) => api.delete(`/calendar/${appointmentId}`).then((response) => response.data)
 export const fetchNotifications = (userId) => api.get(`/notifications?user_id=${userId}`).then((response) => response.data)
 export const markNotificationRead = (notificationId) => api.put(`/notifications/${notificationId}/read`).then((response) => response.data)
+export const fetchClients = () => api.get('/clients').then((response) => response.data)
+export const createClient = (payload) => api.post('/clients', payload).then((response) => response.data)
+export const updateClient = (clientId, payload) => api.put(`/clients/${clientId}`, payload).then((response) => response.data)
+export const deleteClient = (clientId) => api.delete(`/clients/${clientId}`).then((response) => response.data)
 
 export default api

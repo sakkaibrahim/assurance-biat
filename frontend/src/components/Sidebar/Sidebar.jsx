@@ -1,13 +1,23 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
-const items = [
+const adminItems = [
   { to: '/', label: 'Dashboard' },
   { to: '/chat', label: 'Chat IA' },
   { to: '/documents', label: 'Documents' },
-  { to: '/history', label: 'Historique' },
+  { to: '/clients', label: 'Clients' },
   { to: '/tasks', label: 'Tâches' },
   { to: '/planning', label: 'Planning' },
+  { to: '/calendar', label: 'Calendrier' },
+  { to: '/notifications', label: 'Notifications' },
+  { to: '/history', label: 'Historique' },
+  { to: '/settings', label: 'Paramètres' },
+]
+
+const clientItems = [
+  { to: '/', label: 'Dashboard' },
+  { to: '/chat', label: 'Chat IA' },
+  { to: '/tasks', label: 'Mes tâches' },
   { to: '/calendar', label: 'Calendrier' },
   { to: '/notifications', label: 'Notifications' },
   { to: '/settings', label: 'Paramètres' },
@@ -16,6 +26,8 @@ const items = [
 export default function Sidebar() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
+  const isAdmin = user?.is_admin || false
+  const items = isAdmin ? adminItems : clientItems
 
   const handleLogout = () => {
     logout()
@@ -26,10 +38,15 @@ export default function Sidebar() {
     <aside className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-5 flex flex-col gap-5">
       <div>
         <div className="text-xs tracking-widest uppercase text-blue-300">Assistant Assurance</div>
-        <h1 className="text-3xl font-bold mt-2">Console IA</h1>
+        <h1 className="text-3xl font-bold mt-2">{isAdmin ? 'Console IA' : 'Espace client'}</h1>
         <p className="mt-2 text-blue-200">
           {user ? `${user.full_name} · ${user.email}` : 'Espace de travail des agents'}
         </p>
+        {isAdmin && (
+          <span className="inline-block mt-2 rounded-full border border-blue-400/40 bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
+            Administrateur
+          </span>
+        )}
       </div>
 
       <nav className="grid gap-2">
@@ -51,13 +68,15 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto grid gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('/chat')}
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-white hover:bg-white/10 transition-colors"
-        >
-          Lancer une question
-        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => navigate('/chat')}
+            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-white hover:bg-white/10 transition-colors"
+          >
+            Lancer une question
+          </button>
+        )}
         <button
           type="button"
           onClick={handleLogout}

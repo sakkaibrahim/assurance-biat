@@ -14,6 +14,22 @@ class UserTable(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
+class ClientTable(Base):
+    __tablename__ = "clients"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String(255), nullable=False)
+    last_name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+    address = Column(String(500), nullable=True)
+    policy_number = Column(String(255), nullable=True)
+    contract_type = Column(String(255), nullable=True)
+    expiration_date = Column(DateTime(timezone=True), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class DocumentTable(Base):
     __tablename__ = "documents"
 
@@ -46,6 +62,7 @@ class TaskTable(Base):
     status = Column(String(50), nullable=False, default="todo")
     assigned_user = Column(String(255), nullable=True)
     client_or_dossier = Column(String(255), nullable=True)
+    client_id = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -57,6 +74,7 @@ class AppointmentTable(Base):
     start_datetime = Column(DateTime(timezone=True), nullable=False)
     end_datetime = Column(DateTime(timezone=True), nullable=False)
     client_name = Column(String(255), nullable=True)
+    client_id = Column(Integer, nullable=True)
     location = Column(String(255), nullable=True)
     status = Column(String(50), nullable=False, default="scheduled")
     created_at = Column(DateTime(timezone=True), server_default=func.now())

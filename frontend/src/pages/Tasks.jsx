@@ -3,10 +3,11 @@ import api from '../services/api'
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([])
-  const [form, setForm] = useState({ title: '', description: '', priority: 'moyenne', estimated_duration: '', deadline: '', assigned_user: '', client_or_dossier: '' })
+  const [form, setForm] = useState({ title: '', description: '', priority: 'moyenne', estimated_duration: '', deadline: '', assigned_user: '', client_or_dossier: '', client_id: '' })
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [clients, setClients] = useState([])
 
   const loadTasks = () => {
     api.get('/tasks').then((response) => setTasks(response.data || response)).catch(() => setTasks([]))
@@ -14,6 +15,7 @@ export default function Tasks() {
 
   useEffect(() => {
     loadTasks()
+    api.get('/clients').then((response) => setClients(response.data || response)).catch(() => setClients([]))
   }, [])
 
   const handleSubmit = async (event) => {
@@ -25,6 +27,7 @@ export default function Tasks() {
         ...form,
         estimated_duration: form.estimated_duration ? Number(form.estimated_duration) : null,
         deadline: form.deadline || null,
+        client_id: form.client_id ? Number(form.client_id) : null,
       }
       if (editingId) {
         await api.put(`/tasks/${editingId}`, payload)
@@ -34,7 +37,7 @@ export default function Tasks() {
         await api.post('/tasks', payload)
         setMessage('Tâche créée')
       }
-      setForm({ title: '', description: '', priority: 'moyenne', estimated_duration: '', deadline: '', assigned_user: '', client_or_dossier: '' })
+      setForm({ title: '', description: '', priority: 'moyenne', estimated_duration: '', deadline: '', assigned_user: '', client_or_dossier: '', client_id: '' })
       loadTasks()
     } catch (error) {
       setMessage('Erreur lors de l’enregistrement')
@@ -53,6 +56,7 @@ export default function Tasks() {
       deadline: task.deadline ? task.deadline.slice(0, 10) : '',
       assigned_user: task.assigned_user || '',
       client_or_dossier: task.client_or_dossier || '',
+      client_id: task.client_id || '',
     })
   }
 
@@ -129,6 +133,16 @@ export default function Tasks() {
           onChange={(event) => setForm({ ...form, client_or_dossier: event.target.value })}
           placeholder="Client / Dossier"
         />
+        <select
+          className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3"
+          value={form.client_id}
+          onChange={(event) => setForm({ ...form, client_id: event.target.value })}
+        >
+          <option value="">Sélectionner un client</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>{client.first_name} {client.last_name}</option>
+          ))}
+        </select>
         <div className="flex gap-3">
           <button type="submit" disabled={loading} className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-2 text-white font-semibold hover:shadow-lg transition-all">
             {editingId ? 'Mettre à jour' : 'Créer la tâche'}

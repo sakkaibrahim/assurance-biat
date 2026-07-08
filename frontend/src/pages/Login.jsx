@@ -26,34 +26,40 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <form onSubmit={handleSubmit} className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-7 grid gap-4">
-        <div>
-          <div className="text-xs tracking-widest uppercase text-blue-300">Assistant Assurance</div>
+      <div className="w-full max-w-[460px] rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-8 grid gap-6">
+        <div className="text-center">
+          <div className="text-xs tracking-widest uppercase text-blue-300">Assistant Assurance BIAT</div>
           <h1 className="text-4xl font-bold mt-3">Connexion</h1>
-          <p className="mt-2 text-blue-200">Accède au dashboard RAG des agents d'assurance.</p>
+          <p className="mt-2 text-blue-200">Accède au dashboard et à l’assistant IA.</p>
         </div>
 
-        <input
-          className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email"
-        />
-        <input
-          type="password"
-          className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Mot de passe"
-        />
-        {error ? <div className="text-pink-300">{error}</div> : null}
-        <button type="submit" className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-3 text-white font-semibold hover:shadow-lg transition-all">
-          Entrer
-        </button>
+        <form onSubmit={handleSubmit} className="grid gap-4">
+          <input
+            className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="Email"
+          />
+          <input
+            type="password"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Mot de passe"
+          />
+          {error ? <div className="text-pink-300">{error}</div> : null}
+          <button type="submit" className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-3 text-white font-semibold hover:shadow-lg transition-all">
+            Entrer
+          </button>
+        </form>
+
         <div className="text-center text-blue-200 text-sm">
-          Pas encore de compte ? <Link to="/register" className="text-blue-300">Créer un compte</Link>
+          Pas encore de compte ?{' '}
+          <Link to="/register" className="text-blue-300">
+            Créer un compte
+          </Link>
         </div>
-      </form>
+      </div>
     </div>
   )
 }

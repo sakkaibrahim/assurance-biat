@@ -11,6 +11,7 @@ import Tasks from './pages/Tasks'
 import Planning from './pages/Planning'
 import Calendar from './pages/Calendar'
 import Notifications from './pages/Notifications'
+import Clients from './pages/Clients'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/planning" element={<Planning />} />
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/clients" element={<Clients />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
