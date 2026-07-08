@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, func, Enum as SQLEnum, Date, Time
 
 from app.database.db import Base
 
@@ -31,4 +31,43 @@ class ChatTable(Base):
     user_question = Column(Text, nullable=False)
     assistant_answer = Column(Text, nullable=False)
     sources = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class TaskTable(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    priority = Column(String(50), nullable=False, default="moyenne")
+    estimated_duration = Column(Integer, nullable=True)
+    deadline = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(50), nullable=False, default="todo")
+    assigned_user = Column(String(255), nullable=True)
+    client_or_dossier = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class AppointmentTable(Base):
+    __tablename__ = "appointments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    start_datetime = Column(DateTime(timezone=True), nullable=False)
+    end_datetime = Column(DateTime(timezone=True), nullable=False)
+    client_name = Column(String(255), nullable=True)
+    location = Column(String(255), nullable=True)
+    status = Column(String(50), nullable=False, default="scheduled")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class NotificationTable(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -6,6 +6,10 @@ const items = [
   { to: '/chat', label: 'Chat IA' },
   { to: '/documents', label: 'Documents' },
   { to: '/history', label: 'Historique' },
+  { to: '/tasks', label: 'Tâches' },
+  { to: '/planning', label: 'Planning' },
+  { to: '/calendar', label: 'Calendrier' },
+  { to: '/notifications', label: 'Notifications' },
   { to: '/settings', label: 'Paramètres' },
 ]
 

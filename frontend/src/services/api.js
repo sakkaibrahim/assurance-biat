@@ -27,5 +27,17 @@ export const uploadDocument = (file) => {
 }
 export const askQuestion = (question) => api.post('/chat', { question }).then((response) => response.data)
 export const fetchMe = () => api.get('/users/me').then((response) => response.data)
+export const fetchTasks = () => api.get('/tasks').then((response) => response.data)
+export const createTask = (payload) => api.post('/tasks', payload).then((response) => response.data)
+export const updateTask = (taskId, payload) => api.put(`/tasks/${taskId}`, payload).then((response) => response.data)
+export const deleteTask = (taskId) => api.delete(`/tasks/${taskId}`).then((response) => response.data)
+export const fetchDailyPlan = (date) => api.get(`/planning/daily?date=${date}`).then((response) => response.data)
+export const fetchWeeklySummary = () => api.get('/planning/weekly').then((response) => response.data)
+export const fetchAppointments = () => api.get('/calendar').then((response) => response.data)
+export const createAppointment = (payload) => api.post('/calendar', payload).then((response) => response.data)
+export const updateAppointment = (appointmentId, payload) => api.put(`/calendar/${appointmentId}`, payload).then((response) => response.data)
+export const deleteAppointment = (appointmentId) => api.delete(`/calendar/${appointmentId}`).then((response) => response.data)
+export const fetchNotifications = (userId) => api.get(`/notifications?user_id=${userId}`).then((response) => response.data)
+export const markNotificationRead = (notificationId) => api.put(`/notifications/${notificationId}/read`).then((response) => response.data)
 
 export default api

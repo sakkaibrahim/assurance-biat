@@ -16,7 +16,14 @@ import sys
 from sqlalchemy import text
 
 from app.database.db import Base, engine
-from app.database.models import ChatTable, DocumentTable, UserTable
+from app.database.models import (
+    AppointmentTable,
+    ChatTable,
+    DocumentTable,
+    NotificationTable,
+    TaskTable,
+    UserTable,
+)
 from app.services.auth_service import ensure_default_admin
 
 
@@ -24,6 +31,9 @@ TABLES_TO_CREATE = [
     UserTable.__tablename__,
     DocumentTable.__tablename__,
     ChatTable.__tablename__,
+    TaskTable.__tablename__,
+    AppointmentTable.__tablename__,
+    NotificationTable.__tablename__,
 ]
 
 

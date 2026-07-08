@@ -7,6 +7,10 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import History from './pages/History'
 import Settings from './pages/Settings'
+import Tasks from './pages/Tasks'
+import Planning from './pages/Planning'
+import Calendar from './pages/Calendar'
+import Notifications from './pages/Notifications'
 
 export default function App() {
   return (
@@ -19,6 +23,10 @@ export default function App() {
         <Route path="/documents" element={<Documents />} />
         <Route path="/history" element={<History />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/tasks" element={<Tasks />} />
+        <Route path="/planning" element={<Planning />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
