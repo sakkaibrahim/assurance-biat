@@ -60,17 +60,19 @@ def ensure_default_admin() -> None:
     with SessionLocal() as session:
         existing_admin = session.query(UserTable).filter(UserTable.email == "admin@example.com").first()
         if existing_admin is not None:
-            return
-
-        admin_user = UserTable(
-            email="admin@example.com",
-            password=hash_password("admin123"),
-            full_name="Administrateur",
-            role="admin",
-            is_admin=True,
-        )
-        session.add(admin_user)
-        session.commit()
+            existing_admin.role = "admin"
+            existing_admin.is_admin = True
+            session.commit()
+        else:
+            admin_user = UserTable(
+                email="admin@example.com",
+                password=hash_password("admin123"),
+                full_name="Administrateur",
+                role="admin",
+                is_admin=True,
+            )
+            session.add(admin_user)
+            session.commit()
 
         existing_client = session.query(UserTable).filter(UserTable.email == "client@example.com").first()
         if existing_client is None:
