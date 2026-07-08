@@ -1,0 +1,13 @@
+<VirtualHost *:80>
+    ServerName assurance-biat.local
+    DocumentRoot "C:/Users/brahim/Desktop/stage biat assurance/insurance-ai-assistant/frontend/dist"
+
+    <Directory "C:/Users/brahim/Desktop/stage biat assurance/insurance-ai-assistant/frontend/dist">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog "logs/assurance-biat-error.log"
+    CustomLog "logs/assurance-biat-access.log" common
+</VirtualHost>
