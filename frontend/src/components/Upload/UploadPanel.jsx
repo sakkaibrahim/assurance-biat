@@ -19,21 +19,21 @@ export default function UploadPanel() {
   }
 
   return (
-    <form onSubmit={handleUpload} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-5 grid gap-4">
+    <form onSubmit={handleUpload} className="rounded-3xl border border-border bg-white shadow-sm p-5 grid gap-4">
       <div>
-        <h3 className="text-lg font-bold">Importer un PDF</h3>
-        <p className="mt-1 text-blue-200">Ajoute un contrat, une procédure ou une FAQ pour l'indexation RAG.</p>
+        <h3 className="text-lg font-bold text-text">Importer un PDF</h3>
+        <p className="mt-1 text-muted">Ajoute un contrat, une procédure ou une FAQ pour l'indexation RAG.</p>
       </div>
       <input
         type="file"
         accept="application/pdf"
         onChange={(event) => setFile(event.target.files?.[0] || null)}
-        className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3"
+        className="w-full rounded-2xl border border-border bg-surface p-3 text-text"
       />
-      <button type="submit" className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-2 text-white font-semibold hover:shadow-lg transition-all">
+      <button type="submit" className="rounded-2xl bg-primary px-4 py-2 text-white font-semibold hover:bg-primary/90 transition-colors">
         Importer
       </button>
-      {status ? <div className="text-blue-100">{status}</div> : null}
+      {status ? <div className="text-primary font-semibold">{status}</div> : null}
     </form>
   )
 }

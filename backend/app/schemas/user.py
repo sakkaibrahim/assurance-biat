@@ -16,6 +16,7 @@ class UserRegister(UserCreate):
 
 class UserRead(UserBase):
     id: int
+    role: str = "client"
     is_admin: bool = False
 
 

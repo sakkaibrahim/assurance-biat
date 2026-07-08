@@ -32,17 +32,18 @@ def authenticate_user(email: str, password: str) -> User | None:
             id=user_row.id,
             email=user_row.email,
             full_name=user_row.full_name,
+            role=user_row.role,
             is_admin=user_row.is_admin,
         )
 
 
-def register_user(email: str, password: str, full_name: str | None = None) -> User:
+def register_user(email: str, password: str, full_name: str | None = None, role: str = "client") -> User:
     with SessionLocal() as session:
         existing_user = session.query(UserTable).filter(UserTable.email == email).first()
         if existing_user is not None:
             raise ValueError("Un utilisateur avec cet email existe déjà")
 
-        user_row = UserTable(email=email, password=hash_password(password), full_name=full_name, is_admin=False)
+        user_row = UserTable(email=email, password=hash_password(password), full_name=full_name, role=role, is_admin=(role == "admin"))
         session.add(user_row)
         session.commit()
         session.refresh(user_row)
@@ -50,6 +51,7 @@ def register_user(email: str, password: str, full_name: str | None = None) -> Us
             id=user_row.id,
             email=user_row.email,
             full_name=user_row.full_name,
+            role=user_row.role,
             is_admin=user_row.is_admin,
         )
 
@@ -64,10 +66,23 @@ def ensure_default_admin() -> None:
             email="admin@example.com",
             password=hash_password("admin123"),
             full_name="Administrateur",
+            role="admin",
             is_admin=True,
         )
         session.add(admin_user)
         session.commit()
+
+        existing_client = session.query(UserTable).filter(UserTable.email == "client@example.com").first()
+        if existing_client is None:
+            client_user = UserTable(
+                email="client@example.com",
+                password=hash_password("client123"),
+                full_name="Client BIAT",
+                role="client",
+                is_admin=False,
+            )
+            session.add(client_user)
+            session.commit()
 
 
 def create_access_token(user: User) -> dict[str, str]:
@@ -76,6 +91,7 @@ def create_access_token(user: User) -> dict[str, str]:
         "sub": str(user.id),
         "email": user.email,
         "full_name": user.full_name or "",
+        "role": user.role,
         "is_admin": user.is_admin,
         "exp": expires_at,
     }

@@ -69,18 +69,18 @@ export default function ChatWindow() {
         {messages.map((message, index) => (
           <article
             key={`${message.role}-${index}`}
-            className="rounded-3xl border border-white/10 bg-white/5 p-4 max-w-[88%]"
+            className="rounded-3xl border border-border bg-white shadow-sm p-4 max-w-[88%]"
             style={{ marginLeft: message.role === 'user' ? 'auto' : 0 }}
           >
-            <div className="text-xs uppercase tracking-wider text-blue-300">
+            <div className="text-xs uppercase tracking-wider text-primary font-semibold">
               {message.role === 'user' ? 'Vous' : 'Assistant'}
             </div>
-            <p className="mt-2 whitespace-pre-wrap">{message.content}</p>
+            <p className="mt-2 text-text whitespace-pre-wrap">{message.content}</p>
             {message.sources?.length ? (
               <div className="mt-3 grid gap-2">
-                <strong className="text-sm">Sources</strong>
+                <strong className="text-sm text-text">Sources</strong>
                 {message.sources.map((source, sourceIndex) => (
-                  <div key={`${source.filename}-${sourceIndex}`} className="text-sm text-blue-100">
+                  <div key={`${source.filename}-${sourceIndex}`} className="text-sm text-muted">
                     {source.filename}: {source.excerpt}
                   </div>
                 ))}
@@ -90,17 +90,17 @@ export default function ChatWindow() {
         ))}
       </div>
 
-      <form onSubmit={submitQuestion} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 grid gap-3 mt-auto">
+      <form onSubmit={submitQuestion} className="rounded-3xl border border-border bg-white shadow-sm p-4 grid gap-3 mt-auto">
         <textarea
-          className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
+          className="w-full rounded-2xl border border-border bg-surface p-3 outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,122,61,0.12)] text-text"
           rows="4"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           placeholder="Exemple: Quelle est la procédure de gestion d'un sinistre ?"
         />
         <div className="flex gap-3 justify-between items-center">
-          <span className="text-blue-200 text-sm">{loading ? 'Réflexion en cours...' : 'Réponse générée à partir de la base documentaire.'}</span>
-          <button type="submit" disabled={loading} className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-2 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50">
+          <span className="text-muted text-sm">{loading ? 'Réflexion en cours...' : 'Réponse générée à partir de la base documentaire.'}</span>
+          <button type="submit" disabled={loading} className="rounded-2xl bg-primary px-4 py-2 text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50">
             Envoyer
           </button>
         </div>

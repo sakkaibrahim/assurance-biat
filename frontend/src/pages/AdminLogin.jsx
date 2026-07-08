@@ -3,7 +3,7 @@ import { login } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
 
-export default function Login() {
+export default function AdminLogin() {
   const navigate = useNavigate()
   const { setUser } = useAuth()
   const [email, setEmail] = useState('admin@example.com')
@@ -29,34 +29,34 @@ export default function Login() {
       <div className="w-full max-w-[460px] rounded-3xl border border-border bg-white shadow-sm p-8 grid gap-6">
         <div className="text-center">
           <div className="text-xs tracking-widest uppercase text-primary font-semibold">Assurance BIAT</div>
-          <h1 className="text-4xl font-bold mt-3 text-text">Connexion</h1>
-          <p className="mt-2 text-muted">Accède au dashboard et à l’assistant IA.</p>
+          <h1 className="text-4xl font-bold mt-3 text-text">Espace Admin</h1>
+          <p className="mt-2 text-muted">Accès réservé aux administrateurs et superviseurs.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <input
-            className="w-full rounded-2xl border border-border bg-surface p-3 outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,87,163,0.12)] text-text"
+            className="w-full rounded-2xl border border-border bg-surface p-3 outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,122,61,0.12)] text-text"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="Email"
+            placeholder="Email admin"
           />
           <input
             type="password"
-            className="w-full rounded-2xl border border-border bg-surface p-3 outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,87,163,0.12)] text-text"
+            className="w-full rounded-2xl border border-border bg-surface p-3 outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgba(0,122,61,0.12)] text-text"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Mot de passe"
           />
           {error ? <div className="text-red-500">{error}</div> : null}
           <button type="submit" className="rounded-2xl bg-primary px-4 py-3 text-white font-semibold hover:bg-primary/90 transition-colors">
-            Entrer
+            Se connecter
           </button>
         </form>
 
         <div className="text-center text-muted text-sm">
-          Pas encore de compte ?{' '}
-          <Link to="/register" className="text-primary font-semibold">
-            Créer un compte
+          Pas admin ?{' '}
+          <Link to="/login/client" className="text-primary font-semibold">
+            Accès client
           </Link>
         </div>
       </div>

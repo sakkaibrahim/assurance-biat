@@ -3,8 +3,8 @@ import AppLayout from './components/Layout/AppLayout'
 import Dashboard from './pages/Dashboard'
 import Chatbot from './pages/Chatbot'
 import Documents from './pages/Documents'
-import Login from './pages/Login'
-import Register from './pages/Register'
+import AdminLogin from './pages/AdminLogin'
+import ClientLogin from './pages/ClientLogin'
 import History from './pages/History'
 import Settings from './pages/Settings'
 import Tasks from './pages/Tasks'
@@ -16,8 +16,9 @@ import Clients from './pages/Clients'
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/login/admin" element={<AdminLogin />} />
+      <Route path="/login/client" element={<ClientLogin />} />
+      <Route path="/login" element={<AdminLogin />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/chat" element={<Chatbot />} />

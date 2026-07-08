@@ -10,6 +10,7 @@ class UserTable(Base):
     email = Column(String(255), nullable=False, unique=True, index=True)
     full_name = Column(String(255), nullable=True)
     password = Column(String(255), nullable=False)
+    role = Column(String(50), nullable=False, default="client")
     is_admin = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
