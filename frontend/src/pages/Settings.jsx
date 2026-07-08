@@ -1,19 +1,19 @@
 export default function Settings() {
   return (
-    <section className="card glow" style={{ padding: 24 }}>
-      <div style={{ fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8db1ff' }}>Paramètres</div>
-      <h2 style={{ margin: '10px 0 0', fontSize: 34 }}>Configuration du MVP</h2>
-      <p style={{ color: '#a8bde4', maxWidth: 720 }}>
+    <section className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-6">
+      <div className="text-xs tracking-widest uppercase text-blue-300">Paramètres</div>
+      <h2 className="text-4xl font-bold mt-2">Configuration du MVP</h2>
+      <p className="text-blue-200 max-w-3xl mt-2">
         Cette page est prête pour brancher les paramètres de modèle, les chemins d'index vectoriel, l'authentification et les rôles.
       </p>
-      <div className="grid" style={{ marginTop: 20 }}>
-        <div className="card" style={{ padding: 16, background: 'rgba(255,255,255,0.03)' }}>
+      <div className="grid gap-4 mt-5">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <strong>LLM</strong>
-          <p style={{ marginBottom: 0, color: '#a8bde4' }}>Ollama avec Llama 3.1 ou Mistral.</p>
+          <p className="mb-0 text-blue-200">Ollama avec Llama 3.1 ou Mistral.</p>
         </div>
-        <div className="card" style={{ padding: 16, background: 'rgba(255,255,255,0.03)' }}>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <strong>Stockage</strong>
-          <p style={{ marginBottom: 0, color: '#a8bde4' }}>SQLite pour les métadonnées, ChromaDB pour les embeddings.</p>
+          <p className="mb-0 text-blue-200">MySQL (XAMPP) pour les métadonnées, ChromaDB pour les embeddings.</p>
         </div>
       </div>
     </section>

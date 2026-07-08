@@ -39,27 +39,27 @@ export default function Documents() {
   }
 
   return (
-    <div className="grid grid-2" style={{ alignItems: 'start' }}>
+    <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-6 items-start">
       <UploadPanel />
-      <section className="card glow" style={{ padding: 24 }}>
-        <h3 style={{ marginTop: 0 }}>Bibliothèque documentaire</h3>
-        {message ? <div style={{ marginBottom: 12, color: '#8db1ff' }}>{message}</div> : null}
-        <div style={{ display: 'grid', gap: 12 }}>
+      <section className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-6">
+        <h3 className="text-lg font-bold mt-0">Bibliothèque documentaire</h3>
+        {message ? <div className="mb-3 text-blue-300">{message}</div> : null}
+        <div className="grid gap-3">
           {documents.length ? documents.map((document) => (
-            <div key={document.id} className="card" style={{ padding: 14, background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontWeight: 700 }}>{document.filename}</div>
-              <div style={{ marginTop: 6, color: '#a8bde4' }}>{document.source_path}</div>
-              <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                <button className="button secondary" type="button" onClick={() => handleReindex(document.id)}>
+            <div key={document.id} className="rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="font-bold">{document.filename}</div>
+              <div className="mt-1 text-blue-200">{document.source_path}</div>
+              <div className="mt-2 flex gap-2 flex-wrap">
+                <button type="button" onClick={() => handleReindex(document.id)} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-white hover:bg-white/10 transition-colors">
                   Réindexer
                 </button>
-                <button className="button secondary" type="button" onClick={() => handleDelete(document.id)}>
+                <button type="button" onClick={() => handleDelete(document.id)} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-1 text-white hover:bg-white/10 transition-colors">
                   Supprimer
                 </button>
               </div>
             </div>
           )) : (
-            <div className="card" style={{ padding: 14, background: 'rgba(255,255,255,0.03)' }}>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
               Aucun document importé pour le moment.
             </div>
           )}

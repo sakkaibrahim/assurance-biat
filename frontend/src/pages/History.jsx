@@ -11,22 +11,22 @@ export default function History() {
   }, [])
 
   return (
-    <section className="card glow" style={{ padding: 24 }}>
-      <div style={{ fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8db1ff' }}>Historique</div>
-      <h2 style={{ margin: '10px 0 0', fontSize: 34 }}>Dernières conversations</h2>
-      <div style={{ display: 'grid', gap: 14, marginTop: 20 }}>
+    <section className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-6">
+      <div className="text-xs tracking-widest uppercase text-blue-300">Historique</div>
+      <h2 className="text-4xl font-bold mt-2">Dernières conversations</h2>
+      <div className="grid gap-4 mt-5">
         {items.length ? items.map((item) => (
-          <article key={item.id} className="card" style={{ padding: 16, background: 'rgba(255,255,255,0.03)' }}>
-            <div style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8db1ff' }}>Question</div>
-            <p style={{ marginTop: 8 }}>{item.question}</p>
-            <div style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8db1ff' }}>Réponse</div>
-            <p style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}>{item.answer}</p>
+          <article key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="text-xs uppercase tracking-wider text-blue-300">Question</div>
+            <p className="mt-2">{item.question}</p>
+            <div className="text-xs uppercase tracking-wider text-blue-300 mt-3">Réponse</div>
+            <p className="mt-2 whitespace-pre-wrap">{item.answer}</p>
             {item.sources?.length ? (
-              <div style={{ marginTop: 12 }}>
+              <div className="mt-3">
                 <strong>Sources</strong>
-                <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
+                <div className="grid gap-2 mt-2">
                   {item.sources.map((source, sourceIndex) => (
-                    <div key={`${item.id}-${sourceIndex}`} style={{ color: '#cfe0ff' }}>
+                    <div key={`${item.id}-${sourceIndex}`} className="text-blue-100">
                       {source.filename}: {source.excerpt}
                     </div>
                   ))}
@@ -35,7 +35,7 @@ export default function History() {
             ) : null}
           </article>
         )) : (
-          <p style={{ color: '#a8bde4' }}>Aucune conversation enregistrée pour le moment.</p>
+          <p className="text-blue-200">Aucune conversation enregistrée pour le moment.</p>
         )}
       </div>
     </section>

@@ -64,28 +64,23 @@ export default function ChatWindow() {
   }
 
   return (
-    <section className="grid" style={{ minHeight: 560 }}>
-      <div style={{ display: 'grid', gap: 14 }}>
+    <section className="grid gap-4 min-h-[560px]">
+      <div className="grid gap-3">
         {messages.map((message, index) => (
           <article
             key={`${message.role}-${index}`}
-            className="card"
-            style={{
-              padding: 16,
-              marginLeft: message.role === 'user' ? 'auto' : 0,
-              maxWidth: '88%',
-              background: message.role === 'user' ? 'rgba(93, 124, 255, 0.18)' : 'rgba(255, 255, 255, 0.04)',
-            }}
+            className="rounded-3xl border border-white/10 bg-white/5 p-4 max-w-[88%]"
+            style={{ marginLeft: message.role === 'user' ? 'auto' : 0 }}
           >
-            <div style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#8db1ff' }}>
+            <div className="text-xs uppercase tracking-wider text-blue-300">
               {message.role === 'user' ? 'Vous' : 'Assistant'}
             </div>
-            <p style={{ margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>{message.content}</p>
+            <p className="mt-2 whitespace-pre-wrap">{message.content}</p>
             {message.sources?.length ? (
-              <div style={{ marginTop: 14, display: 'grid', gap: 8 }}>
-                <strong style={{ fontSize: 14 }}>Sources</strong>
+              <div className="mt-3 grid gap-2">
+                <strong className="text-sm">Sources</strong>
                 {message.sources.map((source, sourceIndex) => (
-                  <div key={`${source.filename}-${sourceIndex}`} style={{ fontSize: 14, color: '#cfe0ff' }}>
+                  <div key={`${source.filename}-${sourceIndex}`} className="text-sm text-blue-100">
                     {source.filename}: {source.excerpt}
                   </div>
                 ))}
@@ -95,17 +90,17 @@ export default function ChatWindow() {
         ))}
       </div>
 
-      <form onSubmit={submitQuestion} className="card glow" style={{ marginTop: 'auto', padding: 16, display: 'grid', gap: 12 }}>
+      <form onSubmit={submitQuestion} className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-4 grid gap-3 mt-auto">
         <textarea
-          className="textarea"
+          className="w-full rounded-2xl border border-white/10 bg-white/5 text-white p-3 outline-none focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(98,143,255,0.15)]"
           rows="4"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
           placeholder="Exemple: Quelle est la procédure de gestion d'un sinistre ?"
         />
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#a8bde4', fontSize: 14 }}>{loading ? 'Réflexion en cours...' : 'Réponse générée à partir de la base documentaire.'}</span>
-          <button className="button" type="submit" disabled={loading}>
+        <div className="flex gap-3 justify-between items-center">
+          <span className="text-blue-200 text-sm">{loading ? 'Réflexion en cours...' : 'Réponse générée à partir de la base documentaire.'}</span>
+          <button type="submit" disabled={loading} className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-2 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50">
             Envoyer
           </button>
         </div>

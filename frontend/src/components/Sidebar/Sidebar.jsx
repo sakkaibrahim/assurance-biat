@@ -19,39 +19,46 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="card glow" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <aside className="rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-xl p-5 flex flex-col gap-5">
       <div>
-        <div style={{ fontSize: 12, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#8db1ff' }}>Assistant Assurance</div>
-        <h1 style={{ margin: '8px 0 0', fontSize: 28 }}>Console IA</h1>
-        <p style={{ margin: '10px 0 0', color: '#aac0e8' }}>
+        <div className="text-xs tracking-widest uppercase text-blue-300">Assistant Assurance</div>
+        <h1 className="text-3xl font-bold mt-2">Console IA</h1>
+        <p className="mt-2 text-blue-200">
           {user ? `${user.full_name} · ${user.email}` : 'Espace de travail des agents'}
         </p>
       </div>
 
-      <nav style={{ display: 'grid', gap: 10 }}>
+      <nav className="grid gap-2">
         {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
-            style={({ isActive }) => ({
-              padding: '14px 16px',
-              borderRadius: 16,
-              background: isActive ? 'rgba(93, 124, 255, 0.18)' : 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#eef4ff',
-              fontWeight: 600,
-            })}
+            className={({ isActive }) =>
+              `px-4 py-3 rounded-2xl font-semibold transition-colors ${
+                isActive
+                  ? 'bg-blue-500/20 border border-white/10 text-white'
+                  : 'bg-white/5 border border-white/5 text-white hover:bg-white/10'
+              }`
+            }
           >
             {item.label}
           </NavLink>
         ))}
       </nav>
 
-      <div style={{ marginTop: 'auto', display: 'grid', gap: 12 }}>
-        <button className="button secondary" type="button" onClick={() => navigate('/chat')}>
+      <div className="mt-auto grid gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/chat')}
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-white hover:bg-white/10 transition-colors"
+        >
           Lancer une question
         </button>
-        <button className="button" type="button" onClick={handleLogout}>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="rounded-2xl bg-gradient-to-r from-blue-600 to-teal-400 px-4 py-2 text-white font-semibold hover:shadow-lg transition-all"
+        >
           Déconnexion
         </button>
       </div>
