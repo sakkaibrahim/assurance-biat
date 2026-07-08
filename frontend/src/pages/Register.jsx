@@ -17,6 +17,7 @@ export default function Register() {
 
     try {
       const response = await register({ email, full_name: fullName, password })
+      localStorage.setItem('access_token', response.access_token)
       setUser(response.user)
       navigate('/')
     } catch (registrationError) {

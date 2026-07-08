@@ -16,6 +16,7 @@ export default function Login() {
 
     try {
       const response = await login({ email, full_name: 'Administrateur', password })
+      localStorage.setItem('access_token', response.access_token)
       setUser(response.user)
       navigate('/')
     } catch (loginError) {
