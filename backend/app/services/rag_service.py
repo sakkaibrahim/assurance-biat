@@ -7,10 +7,13 @@ from pathlib import Path
 
 from app.database.db import SessionLocal
 from app.database.models import ChatTable, DocumentTable
-from app.services.embedding_service import embed_text
+from app.services.embedding_service import get_embeddings
 from app.services.llm_service import generate_answer
 from app.services.pdf_service import extract_text_from_pdf
+from app.utils.config import get_settings
 from app.utils.helpers import chunk_text, ensure_directory
+
+settings = get_settings()
 
 
 @dataclass
@@ -33,6 +36,30 @@ class DocumentRecord:
 
 _DOCUMENTS: list[DocumentRecord] = []
 _NEXT_DOCUMENT_ID = 1
+_chroma_client = None
+_chroma_collection = None
+
+
+def _get_chroma_collection():
+    global _chroma_client, _chroma_collection
+    if _chroma_collection is not None:
+        return _chroma_collection
+
+    try:
+        import chromadb
+        from chromadb.config import Settings as ChromaSettings
+
+        _chroma_client = chromadb.PersistentClient(
+            path=settings.chroma_dir,
+            settings=ChromaSettings(anonymized_telemetry=False),
+        )
+        _chroma_collection = _chroma_client.get_or_create_collection(
+            name="insurance_documents",
+            metadata={"hnsw:space": "cosine"},
+        )
+        return _chroma_collection
+    except Exception:
+        return None
 
 
 def _sync_from_database() -> None:
@@ -52,7 +79,7 @@ def _rebuild_document_record(document_row: DocumentTable) -> DocumentRecord:
             document_id=document_row.id,
             filename=document_row.filename,
             excerpt=chunk,
-            embedding=embed_text(chunk),
+            embedding=[],
         )
         for chunk in chunk_text(document_row.extracted_text)
     ]
@@ -89,6 +116,19 @@ def ingest_pdf(file_path: str | Path, upload_dir: str = "uploads") -> DocumentRe
 
     record = _rebuild_document_record(document_row)
     _DOCUMENTS.append(record)
+
+    collection = _get_chroma_collection()
+    if collection is not None:
+        try:
+            from app.services.embedding_service import embed_text
+            texts = chunk_text(extracted_text)
+            embeddings = [embed_text(t) for t in texts]
+            ids = [f"doc_{document_row.id}_chunk_{i}" for i in range(len(texts))]
+            metadatas = [{"document_id": document_row.id, "filename": filename} for _ in texts]
+            collection.add(documents=texts, embeddings=embeddings, ids=ids, metadatas=metadatas)
+        except Exception:
+            pass
+
     return record
 
 
@@ -105,6 +145,13 @@ def delete_document(document_id: int) -> None:
 
         session.delete(document_row)
         session.commit()
+
+    collection = _get_chroma_collection()
+    if collection is not None:
+        try:
+            collection.delete(where={"document_id": document_id})
+        except Exception:
+            pass
 
     _sync_from_database()
 
@@ -127,6 +174,19 @@ def reindex_document(document_id: int) -> DocumentRecord:
         session.commit()
         session.refresh(document_row)
 
+    collection = _get_chroma_collection()
+    if collection is not None:
+        try:
+            collection.delete(where={"document_id": document_id})
+            from app.services.embedding_service import embed_text
+            texts = chunk_text(extracted_text)
+            embeddings = [embed_text(t) for t in texts]
+            ids = [f"doc_{document_id}_chunk_{i}" for i in range(len(texts))]
+            metadatas = [{"document_id": document_id, "filename": source_path.name} for _ in texts]
+            collection.add(documents=texts, embeddings=embeddings, ids=ids, metadatas=metadatas)
+        except Exception:
+            pass
+
     _sync_from_database()
     for document in _DOCUMENTS:
         if document.id == document_id:
@@ -147,6 +207,30 @@ def _score(question: str, chunk: ChunkRecord) -> int:
 
 
 def search(question: str, limit: int = 4) -> list[ChunkRecord]:
+    collection = _get_chroma_collection()
+    if collection is not None:
+        try:
+            from app.services.embedding_service import embed_text
+            query_embedding = embed_text(question)
+            results = collection.query(
+                query_embeddings=[query_embedding],
+                n_results=min(limit, 10),
+                include=["documents", "metadatas", "distances"],
+            )
+            chunks: list[ChunkRecord] = []
+            if results and results.get("documents"):
+                for doc_text, metadata in zip(results["documents"][0], results["metadatas"][0]):
+                    chunks.append(ChunkRecord(
+                        document_id=metadata.get("document_id", 0),
+                        filename=metadata.get("filename", ""),
+                        excerpt=doc_text,
+                        embedding=[],
+                    ))
+            if chunks:
+                return chunks
+        except Exception:
+            pass
+
     _bootstrap_documents()
     scored: list[tuple[int, ChunkRecord]] = []
     for document in _DOCUMENTS:
