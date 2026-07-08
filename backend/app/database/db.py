@@ -4,7 +4,13 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from app.utils.config import get_settings
 
 settings = get_settings()
-engine = create_engine(settings.database_url, connect_args={"check_same_thread": False} if settings.database_url.startswith("sqlite") else {})
+connect_args = {}
+if settings.database_url.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
+elif "pymysql" in settings.database_url:
+    connect_args["charset"] = "utf8mb4"
+
+engine = create_engine(settings.database_url, connect_args=connect_args, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
