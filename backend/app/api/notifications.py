@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.task import NotificationCreate, NotificationRead
 from app.services.notification_service import (

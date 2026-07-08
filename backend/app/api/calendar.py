@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from datetime import datetime
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.task import AppointmentCreate, AppointmentRead, AppointmentUpdate
 from app.services.calendar_service import (

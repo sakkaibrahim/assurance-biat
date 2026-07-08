@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.task import TaskCreate, TaskRead, TaskUpdate
 from app.services.task_service import (
