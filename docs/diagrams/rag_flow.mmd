@@ -1,0 +1,11 @@
+flowchart LR
+  A[Question utilisateur] --> B[Preprocessing]
+  B --> C[Hybrid Retriever]
+  C --> D[Qdrant Vector Search]
+  C --> E[Keyword Search]
+  D --> F[Reranker]
+  E --> F
+  F --> G[Prompt grounded]
+  G --> H[LLM]
+  H --> I[Answer + citations]
+

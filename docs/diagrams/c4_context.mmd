@@ -1,0 +1,12 @@
+C4Context
+title Insurance AI Copilot - Context
+Person(agent, "Agent commercial", "Utilise recommandations et Client 360")
+Person(risk, "Analyste risque", "Simule expositions majeures")
+System(copilot, "Insurance AI Copilot", "Plateforme IA assurance")
+System_Ext(docs, "Documents assurance", "CG, FAQ, procedures")
+System_Ext(core, "Core insurance", "Contrats, paiements, sinistres")
+Rel(agent, copilot, "Utilise")
+Rel(risk, copilot, "Analyse")
+Rel(copilot, docs, "Indexe")
+Rel(copilot, core, "Synchronise")
+
