@@ -12,6 +12,9 @@ import Planning from './pages/Planning'
 import Calendar from './pages/Calendar'
 import Notifications from './pages/Notifications'
 import Clients from './pages/Clients'
+import Onboarding from './pages/Onboarding'
+import OnboardingDetail from './pages/OnboardingDetail'
+import OnboardingDashboard from './pages/OnboardingDashboard'
 
 export default function App() {
   return (
@@ -30,6 +33,9 @@ export default function App() {
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/clients" element={<Clients />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/onboarding/:id" element={<OnboardingDetail />} />
+        <Route path="/onboarding-dashboard" element={<OnboardingDashboard />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

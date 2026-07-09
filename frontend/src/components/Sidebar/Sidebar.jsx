@@ -11,6 +11,8 @@ const adminItems = [
   { to: '/calendar', label: 'Calendrier' },
   { to: '/notifications', label: 'Notifications' },
   { to: '/history', label: 'Historique' },
+  { to: '/onboarding', label: 'Onboarding' },
+  { to: '/onboarding-dashboard', label: 'Dashboard Onboarding' },
   { to: '/settings', label: 'Paramètres' },
 ]
 
