@@ -9,4 +9,8 @@ dist/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+notifications/
+*.log
+vite.err
+vite.log
 

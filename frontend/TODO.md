@@ -1,0 +1,8 @@
+- [ ] Create new UI component (BriefingApp) replacing the multi-view sidebar with:
+  - [ ] Briefing home screen (Alertes du jour + Résumé portefeuille + Carnet d’actions)
+  - [ ] Conversation conseiller (RAG) with progressive phases
+  - [ ] Action checklist extracted from RAG answer
+  - [ ] Client focus modal/drawer (load /clients/{id}/360)
+- [ ] Update frontend/src/main.jsx to render BriefingApp
+- [ ] Update frontend/src/styles.css to support the new “human” layout classes
+- [ ] Quick run instructions (manual): npm install, npm run dev, validate endpoints

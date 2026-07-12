@@ -20,6 +20,7 @@ sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from app.db.session import Base, SessionLocal, engine
 from app.models.domain import Claim, ClaimStatus, Client, Contract, Interaction, Payment, ProductType
+from app.services.naming import tunisian_email, tunisian_name
 
 fake = Faker("fr_FR")
 random.seed(42)
@@ -71,10 +72,11 @@ def main(rows: int) -> None:
     segments = ["standard", "affluent", "premium", "young", "senior"]
     client_ids: list[int] = []
 
-    for _ in range(rows):
+    for idx in range(rows):
+        full_name = tunisian_name()
         client = Client(
-            full_name=fake.name(),
-            email=fake.unique.email(),
+            full_name=full_name,
+            email=tunisian_email(full_name, idx),
             city=random.choice(cities),
             segment=random.choices(segments, weights=[0.46, 0.2, 0.12, 0.12, 0.1], k=1)[0],
             age=int(clip(normal(42, 13), 18, 82)),
