@@ -5,22 +5,25 @@ import {
   BarChart3,
   Bot,
   BriefcaseBusiness,
+  Calculator,
+  ChevronLeft,
+  ChevronRight,
   CloudLightning,
+  Gauge,
+  LayoutDashboard,
+  Loader2,
+  MapPin,
+  Maximize2,
+  MessageSquareText,
+  Minimize2,
   RefreshCcw,
   Search,
   ShieldCheck,
   Sparkles,
   UserRound,
-  X,
-  MessageSquareText,
-  ClipboardList,
-  MapPin,
-  Loader2,
   Users,
-  LayoutDashboard,
-  Gauge,
-  ChevronLeft,
-  ChevronRight,
+  X,
+  ClipboardList,
   TrendingUp
 } from "lucide-react";
 import {
@@ -51,7 +54,10 @@ const segColors = {
 };
 
 function formatMoney(value) {
-  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "TND", maximumFractionDigits: 0 }).format(value || 0);
+  const n = Math.round(value || 0);
+  if (n >= 1_000_000) return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n) + " TND";
+  if (n >= 1_000) return new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(n) + " TND";
+  return n + " TND";
 }
 
 function initials(name) {
@@ -127,22 +133,30 @@ const NAV = [
   { id: "clients", label: "Clients", icon: Users },
   { id: "copilot", label: "Copilote", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "map", label: "Carte Tunisie", icon: MapPin },
   { id: "risk", label: "Stress test", icon: CloudLightning },
+  { id: "devis", label: "Simulateur devis", icon: Calculator },
+  { id: "direction", label: "Direction", icon: Gauge },
   { id: "alerts", label: "Alertes", icon: AlertTriangle }
 ];
 
 export default function BriefingApp() {
   const [view, setView] = useState("overview");
+  const [kiosk, setKiosk] = useState(false);
 
   const summary = useApi("/dashboard/summary", {});
   const charts = useApi("/dashboard/charts", { products: [], cities: [], payments: [], claims: [] });
   const alerts = useApi("/alerts", []);
   const facets = useApi("/clients/facets", { cities: [], segments: [] });
+  const executive = useApi("/dashboard/executive", {});
+  const governoratesExposure = useApi("/analytics/governorates-exposure", []);
 
   const refreshAll = () => {
     summary.load();
     charts.load();
     alerts.load();
+    executive.load();
+    governoratesExposure.load();
     if (view === "clients") clientApi.load();
   };
 
@@ -153,12 +167,18 @@ export default function BriefingApp() {
     { icon: AlertTriangle, label: "Churn estimé", value: `${Math.round((summary.data.churn_rate || 0) * 100)}%`, tone: "red", sub: "risque résiliation" }
   ];
 
-  // client directory state
-  const [search, setSearch] = useState("");
-  const [city, setCity] = useState("");
-  const [segment, setSegment] = useState("");
+  // client directory state (persisted in localStorage)
+  const loadFilter = (k, d) => { try { const v = localStorage.getItem("biat_filter_" + k); return v === null ? d : v; } catch { return d; } };
+  const [search, setSearch] = useState(() => loadFilter("search", ""));
+  const [city, setCity] = useState(() => loadFilter("city", ""));
+  const [segment, setSegment] = useState(() => loadFilter("segment", ""));
   const [page, setPage] = useState(0);
   const LIMIT = 24;
+
+  const persist = (k, v) => { try { localStorage.setItem("biat_filter_" + k, v); } catch { /* ignore */ } };
+  const setSearchP = (v) => { setSearch(v); persist("search", v); };
+  const setCityP = (v) => { setCity(v); persist("city", v); };
+  const setSegmentP = (v) => { setSegment(v); persist("segment", v); };
 
   const clientQuery = useMemo(() => {
     const p = new URLSearchParams();
@@ -179,8 +199,18 @@ export default function BriefingApp() {
     return () => clearInterval(id);
   }, []); // eslint-disable-line
 
-  const alertTotal = (alerts.data || []).length;
-  const alertHigh = (alerts.data || []).filter((a) => a.severity === "high").length;
+  const [ack, setAck] = useState(() => { try { return new Set(JSON.parse(localStorage.getItem("biat_ack") || "[]")); } catch { return new Set(); } });
+  const unackAlerts = (alerts.data || []).filter((a) => !ack.has(a.id));
+  const alertTotal = unackAlerts.length;
+  const alertHigh = unackAlerts.filter((a) => a.severity === "high").length;
+
+  function acknowledge(id) {
+    setAck((prev) => {
+      const next = new Set(prev); next.add(id);
+      try { localStorage.setItem("biat_ack", JSON.stringify([...next])); } catch { /* ignore */ }
+      return next;
+    });
+  }
 
   const [drawerClient, setDrawerClient] = useState(null);
   const [drawerLoading, setDrawerLoading] = useState(false);
@@ -206,7 +236,7 @@ export default function BriefingApp() {
         <div className="blob b3" />
       </div>
 
-      <div className="app">
+      <div className={kiosk ? "app kiosk" : "app"}>
         <aside className="sidebar">
           <div className="sideBrand">
             <div className="sideMark"><ShieldCheck size={24} /></div>
@@ -256,7 +286,10 @@ export default function BriefingApp() {
                 {view === "clients" && "Annuaire des clients"}
                 {view === "copilot" && "Copilote conseiller"}
                 {view === "analytics" && "Analytics portefeuille"}
+                {view === "map" && "Carte de Tunisie"}
                 {view === "risk" && "Stress test risque"}
+                {view === "devis" && "Simulateur de devis"}
+                {view === "direction" && "Tableau de bord direction"}
                 {view === "alerts" && "Alertes intelligentes"}
               </h1>
             </div>
@@ -267,10 +300,13 @@ export default function BriefingApp() {
                   <input
                     placeholder="Rechercher un client…"
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                    onChange={(e) => { setSearchP(e.target.value); setPage(0); }}
                   />
                 </div>
               )}
+              <button className="btn ghost" onClick={() => setKiosk((k) => !k)} title="Mode présentation">
+                {kiosk ? <Minimize2 size={16} /> : <Maximize2 size={16} />} {kiosk ? "Quitter" : "Présenter"}
+              </button>
               <button className="btn ghost" onClick={refreshAll}>
                 <RefreshCcw size={16} /> Actualiser
               </button>
@@ -285,11 +321,11 @@ export default function BriefingApp() {
               clientApi={clientApi}
               facets={facets.data}
               search={search}
-              setSearch={(v) => { setSearch(v); setPage(0); }}
+              setSearch={(v) => { setSearchP(v); setPage(0); }}
               city={city}
-              setCity={(v) => { setCity(v); setPage(0); }}
+              setCity={(v) => { setCityP(v); setPage(0); }}
               segment={segment}
-              setSegment={(v) => { setSegment(v); setPage(0); }}
+              setSegment={(v) => { setSegmentP(v); setPage(0); }}
               page={page}
               setPage={setPage}
               limit={LIMIT}
@@ -298,8 +334,11 @@ export default function BriefingApp() {
           )}
           {view === "copilot" && <CopilotView />}
           {view === "analytics" && <AnalyticsView charts={charts} />}
+          {view === "map" && <MapView governoratesExposure={governoratesExposure} />}
           {view === "risk" && <RiskView facets={facets.data} />}
-          {view === "alerts" && <AlertsView alerts={alerts} onOpenClient={openClient} />}
+          {view === "devis" && <DevisView />}
+          {view === "direction" && <DirectionView executive={executive} charts={charts} />}
+          {view === "alerts" && <AlertsView onOpenClient={openClient} ack={ack} acknowledge={acknowledge} />}
         </section>
       </div>
 
@@ -547,6 +586,25 @@ function Client360Drawer({ client, loading, onClose }) {
                     <span className={`badge ${it.sentiment < -0.1 ? "red" : ""}`}>{it.sentiment}</span>
                   </div>
                 ))}
+              </div>
+
+              <div className="litePanel">
+                <h4>Frise chronologique</h4>
+                <div className="timeline">
+                  {[
+                    ...(client.claims || []).map((c) => ({ kind: "claim", label: `Sinistre ${c.product}`, sub: formatMoney(c.amount), tone: "red" })),
+                    ...(client.contracts || []).map((c) => ({ kind: "contract", label: `Contrat ${c.product}`, sub: c.status, tone: "blue" })),
+                    ...(client.interactions || []).map((c) => ({ kind: "interaction", label: c.intent, sub: `${c.channel}`, tone: "teal" })),
+                  ]
+                    .sort((a, b) => (a.label < b.label ? 1 : -1))
+                    .slice(0, 8)
+                    .map((ev, i) => (
+                      <div className={`tlItem ${ev.tone}`} key={i}>
+                        <span className="tlDot" />
+                        <div><strong>{ev.label}</strong><span>{ev.sub}</span></div>
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
           </>
@@ -888,12 +946,264 @@ function RiskView({ facets }) {
   );
 }
 
-/* ============ Alerts (dynamic + email) ============ */
-function AlertsView({ alerts, onOpenClient }) {
-  const list = alerts.data || [];
+/* ============ Tunisia map (city exposure) ============ */
+const CITY_COORDS = {
+  Tunis: [36.8065, 10.1815], Sfax: [34.7406, 10.76], Sousse: [35.8256, 10.6084],
+  Nabeul: [36.4514, 10.7357], Bizerte: [37.2744, 9.8739], Monastir: [35.7779, 10.8265],
+  Gabes: [33.8815, 10.097], Ariana: [36.8665, 10.1647], "Ben Arous": [36.7199, 10.213],
+  Manouba: [36.8105, 10.101],
+};
+
+function MapView({ governoratesExposure }) {
+  const data = governoratesExposure.data || [];
+  const maxExp = Math.max(1, ...data.map((d) => d.exposure || 0));
+
+  const layout = [
+    { key: "Tunis", r: 1, c: 1 },
+    { key: "Ariana", r: 1, c: 0 },
+    { key: "Ben Arous", r: 1, c: 2 },
+    { key: "Manouba", r: 2, c: 1 },
+
+    { key: "Nabeul", r: 0, c: 0 },
+    { key: "Bizerte", r: 0, c: 1 },
+    { key: "Zaghouan", r: 0, c: 2 },
+    { key: "Kef", r: 0, c: 3 },
+    { key: "Siliana", r: 1, c: 3 },
+
+    { key: "Sousse", r: 2, c: 3 },
+    { key: "Monastir", r: 3, c: 3 },
+    { key: "Mahdia", r: 3, c: 2 },
+
+    { key: "Sfax", r: 4, c: 1 },
+    { key: "Gabès", r: 5, c: 1 },
+    { key: "Medenine", r: 5, c: 2 },
+    { key: "Tozeur", r: 4, c: 0 },
+
+    { key: "Kairouan", r: 3, c: 1 },
+    { key: "Gafsa", r: 4, c: 2 },
+    { key: "Kasserine", r: 2, c: 2 },
+    { key: "Sidi Bouzid", r: 3, c: 0 },
+    { key: "Kebili", r: 5, c: 0 },
+
+    { key: "Autres", r: 6, c: 0 },
+  ];
+
+  const byGov = Object.fromEntries(data.map((d) => [d.governorate, d]));
+  const riskColor = (r) => (r > 0.55 ? "#ff4d5e" : r > 0.35 ? "#ffb020" : "#19c3b2");
+  const totalExposure = data.reduce((s, d) => s + (d.exposure || 0), 0);
+
+  const sorted = [...data].sort((a, b) => (b.exposure || 0) - (a.exposure || 0));
+
+  return (
+    <div className="mapWrap">
+      <div className="panel mapPanel">
+        <div className="panelTitle">
+          <div>
+            <h2>Carte des gouvernorats</h2>
+            <span>exposition financière par zone</span>
+          </div>
+          <span className="badge"><MapPin size={14} /> {data.length} gouvernorats</span>
+        </div>
+
+        <div className="mapLeft">
+          <div className="govZoneGrid" role="img" aria-label="Carte en zones des gouvernorats">
+            {layout.map((p) => {
+              const d = byGov[p.key] || null;
+              const exp = d?.exposure || 0;
+              const risk = d?.avg_risk || 0;
+              return (
+                <div
+                  key={`${p.key}-${p.r}-${p.c}`}
+                  className={`govTile ${!d ? "empty" : ""}`}
+                  style={{
+                    gridRow: p.r + 1,
+                    gridColumn: p.c + 1,
+                    background: d ? riskColor(risk) : "rgba(255,255,255,0.4)"
+                  }}
+                  title={d ? `${p.key}\nExposition: ${formatMoney(exp)}\nRisque moyen: ${Math.round(risk * 100)}%` : `${p.key}\nAucune donnée`}
+                >
+                  <div className="govTileName">{p.key}</div>
+                  {d ? <div className="govTileVal">{formatMoney(exp)}</div> : null}
+                </div>
+              );
+            })}
+          </div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
+            Couleur = risque moyen · Valeur = exposition financière · Carte “zones” (tuiles) par gouvernorat.
+          </p>
+        </div>
+
+        <div className="mapRight">
+          <div className="mapTotal">
+            <span>Exposition totale</span>
+            <strong>{formatMoney(totalExposure)}</strong>
+          </div>
+          <div className="mapZoneList">
+            {sorted.map((d) => (
+              <div className="mapZoneRow" key={d.governorate}>
+                <span className="mapZoneDot" style={{ background: riskColor(d.avg_risk || 0) }} />
+                <span className="mapZoneName">{d.governorate}</span>
+                <span className="mapZoneMoney">{formatMoney(d.exposure || 0)}</span>
+                <span className="mapZonePct">{Math.round(((d.exposure || 0) / totalExposure) * 100)}%</span>
+              </div>
+            ))}
+            {!data.length && (
+              <div className="emptyState">
+                <MapPin size={18} />
+                <div>
+                  <strong>Pas de données</strong>
+                  <p>Essayez “Actualiser”.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Quote simulator ============ */
+const PRODUCTS = ["auto", "home", "health", "life", "travel", "business"];
+const PRODUCT_LABELS = { auto: "Auto", home: "Habitation", health: "Santé", life: "Vie", travel: "Voyage", business: "Entreprise" };
+
+function DevisView() {
+  const [product, setProduct] = useState("auto");
+  const [age, setAge] = useState(35);
+  const [income, setIncome] = useState(40000);
+  const [city, setCity] = useState("Tunis");
+  const [result, setResult] = useState(null);
+  const exposure = useApi("/analytics/cities-exposure", []);
+  const riskByCity = {};
+  (exposure.data || []).forEach((d) => { riskByCity[d.city] = d.avg_risk; });
+
+  async function estimate() {
+    const region_risk = riskByCity[city] ?? 0.2;
+    const url = `${API}/quote/estimate?product=${product}&age=${age}&income=${income}&region_risk=${region_risk}&city=${encodeURIComponent(city)}`;
+    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+    setResult(await r.json());
+  }
+
+  return (
+    <div className="stack" style={{ maxWidth: 720 }}>
+      <div className="panel">
+        <div className="panelTitle"><div><h2>Simulateur de devis</h2><span>estimez une prime en direct</span></div>
+          <span className="badge"><Calculator size={14} /> TND</span></div>
+        <div className="quoteGrid">
+          <label>Produit
+            <select value={product} onChange={(e) => setProduct(e.target.value)}>
+              {PRODUCTS.map((p) => <option key={p} value={p}>{PRODUCT_LABELS[p]}</option>)}
+            </select>
+          </label>
+          <label>Âge
+            <input type="number" value={age} min="18" max="90" onChange={(e) => setAge(Number(e.target.value))} />
+          </label>
+          <label>Revenu (TND)
+            <input type="number" value={income} min="0" step="1000" onChange={(e) => setIncome(Number(e.target.value))} />
+          </label>
+          <label>Ville
+            <select value={city} onChange={(e) => setCity(e.target.value)}>
+              {(exposure.data || []).map((d) => <option key={d.city} value={d.city}>{d.city}</option>)}
+            </select>
+          </label>
+        </div>
+        <button className="btn primary" style={{ width: "100%", marginTop: 14 }} onClick={estimate}>
+          <Calculator size={16} /> Calculer la prime
+        </button>
+
+        {result && (
+          <div className="quoteResult">
+            <div><span>Prime annuelle</span><strong>{formatMoney(result.prime_annual)}</strong></div>
+            <div><span>Prime mensuelle</span><strong>{formatMoney(result.prime_monthly)}</strong></div>
+            <div className="quoteFactors">
+              {Object.entries(result.factors || {}).map(([k, v]) => (
+                <span key={k} className="factorTag">{k} · {v}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============ Direction (executive) ============ */
+function DirectionView({ executive, charts }) {
+  const e = executive.data || {};
+  const kpis = [
+    { icon: UserRound, label: "ARPU", value: formatMoney(e.arpu), tone: "blue", sub: "revenu / client" },
+    { icon: BriefcaseBusiness, label: "Prime moyenne", value: formatMoney(e.avg_premium), tone: "violet", sub: "par contrat" },
+    { icon: Gauge, label: "Pénétration", value: `${Math.round((e.penetration_rate || 0) * 100)}%`, tone: "teal", sub: "multi-équipement" },
+    { icon: AlertTriangle, label: "Sinistres ouverts", value: e.claims_open || 0, tone: "red", sub: `ratio ${Math.round((e.claims_ratio || 0) * 100)}%` },
+  ];
+  const premiumSeries = (charts.data.products || []).map((item, i) => ({ name: String(item.name || "").replace("ProductType.", ""), premium: item.premium, fill: colors[i % colors.length] }));
+  return (
+    <div className="stack">
+      <div className="kpiGrid">
+        {kpis.map((k, i) => <Stat key={i} {...k} />)}
+      </div>
+      <div className="gridTwo">
+        <div className="panel">
+          <div className="panelTitle"><div><h2>Primes par produit</h2></div></div>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={premiumSeries}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e6ebf5" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip formatter={(v) => formatMoney(v)} />
+              <Bar dataKey="premium" radius={[8, 8, 0, 0]}>
+                {premiumSeries.map((_, i) => <Cell key={i} fill={colors[i % colors.length]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="stack">
+          <div className="panel">
+            <div className="panelTitle"><div><h2>Taux de pénétration</h2><span>clients multi-équipés</span></div></div>
+            <div className="gaugeWrap">
+              <div className="gaugeRing" style={{ "--val": Math.round((e.penetration_rate || 0) * 100) }}>
+                <span>{Math.round((e.penetration_rate || 0) * 100)}%</span>
+              </div>
+            </div>
+          </div>
+          <div className="panel">
+            <div className="panelTitle"><div><h2>Sinistres ouverts</h2></div></div>
+            <div className="gaugeWrap">
+              <div className="gaugeRing red" style={{ "--val": Math.round((e.claims_ratio || 0) * 100) }}>
+                <span>{Math.round((e.claims_ratio || 0) * 100)}%</span>
+              </div>
+              <p className="muted" style={{ textAlign: "center", fontSize: 12, marginTop: 8 }}>part des sinistres encore ouverts</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ Alerts (dynamic + email + thresholds) ============ */
+function AlertsView({ alerts, onOpenClient, ack, acknowledge }) {
+  const [minClaim, setMinClaim] = useState(20000);
+  const [minRisk, setMinRisk] = useState(0.72);
+  const [cats, setCats] = useState({ payment: true, exposure: true, claim: true, churn: true, cross: true, revenue: true });
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
+
+  const q = useMemo(() => new URLSearchParams({
+    min_claim: String(minClaim),
+    min_risk: String(minRisk),
+    include_payment: String(cats.payment),
+    include_exposure: String(cats.exposure),
+    include_claim: String(cats.claim),
+    include_churn: String(cats.churn),
+    include_cross_sell: String(cats.cross),
+    include_revenue: String(cats.revenue),
+  }).toString(), [minClaim, minRisk, cats]);
+
+  const list = (alerts.data || []).filter((a) => !ack.has(a.id));
+  const full = alerts.data || [];
+  const highCount = full.filter((a) => a.severity === "high").length;
 
   async function sendEmail() {
     setStatus({ kind: "loading", text: "Envoi en cours…" });
@@ -911,11 +1221,11 @@ function AlertsView({ alerts, onOpenClient }) {
     }
   }
 
+  function toggleCat(k) { setCats((c) => ({ ...c, [k]: !c[k] })); }
+
   useEffect(() => {
     fetch(`${API}/alerts/notifications`).then((r) => r.json()).then(setHistory).catch(() => {});
   }, []); // eslint-disable-line
-
-  const highCount = list.filter((a) => a.severity === "high").length;
 
   return (
     <div className="gridTwo">
@@ -923,8 +1233,23 @@ function AlertsView({ alerts, onOpenClient }) {
         <div className="panel">
           <div className="panelTitle">
             <div><h2>Toutes les alertes</h2><span>moteur BIAT · auto-actualisé (15s)</span></div>
-            <span className="badge red">{list.length} signaux · {highCount} critiques</span>
+            <span className="badge red">{full.length} signaux · {highCount} critiques</span>
           </div>
+
+          <div className="alertFilters">
+            <label>Sinistre &gt; {formatMoney(minClaim)}
+              <input type="range" min="5000" max="80000" step="5000" value={minClaim} onChange={(e) => setMinClaim(Number(e.target.value))} className="slider" />
+            </label>
+            <label>Risque région &gt; {Math.round(minRisk * 100)}%
+              <input type="range" min="0.3" max="0.9" step="0.02" value={minRisk} onChange={(e) => setMinRisk(Number(e.target.value))} className="slider" />
+            </label>
+            <div className="filterChips">
+              {Object.keys(cats).map((k) => (
+                <button key={k} className={`chip ${cats[k] ? "active" : ""}`} onClick={() => toggleCat(k)}>{k}</button>
+              ))}
+            </div>
+          </div>
+
           <div className="alertList">
             {list.map((a, i) => (
               <div className={`alertRow ${a.severity === "high" ? "high" : ""} rowIn`} key={a.id || `${a.title}-${i}`} style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}>
@@ -935,12 +1260,18 @@ function AlertsView({ alerts, onOpenClient }) {
                   {a.description && <p className="alertDesc">{a.description}</p>}
                 </div>
                 {a.client_id ? (
-                  <button className="btn ghost alertGo" onClick={() => onOpenClient(a.client_id)}>Voir client</button>
+                  <button className="btn ghost alertGo" onClick={() => onOpenClient(a.client_id)}>Voir</button>
                 ) : null}
+                <button className="btn ghost alertGo" onClick={() => acknowledge(a.id)} title="Marquer comme traité">Traiter</button>
               </div>
             ))}
-            {!list.length && <div className="emptyState"><AlertTriangle size={18} /><div><strong>Aucune alerte</strong></div></div>}
+            {!list.length && <div className="emptyState"><AlertTriangle size={18} /><div><strong>{full.length ? "Tout est traité ✓" : "Aucune alerte"}</strong></div></div>}
           </div>
+          {ack.size > 0 && (
+            <button className="btn ghost" style={{ marginTop: 12 }} onClick={() => { setAck(new Set()); try { localStorage.removeItem("biat_ack"); } catch { /* */ } }}>
+              Réafficher {ack.size} traité(s)
+            </button>
+          )}
         </div>
       </div>
 
@@ -948,12 +1279,7 @@ function AlertsView({ alerts, onOpenClient }) {
         <div className="panel">
           <div className="panelTitle"><div><h2>Notification par e-mail</h2><span>alerte critique → boîte mail</span></div></div>
           <div className="composer">
-            <input
-              type="email"
-              placeholder="destinataire@biat.tn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <input type="email" placeholder="destinataire@biat.tn" value={email} onChange={(e) => setEmail(e.target.value)} />
             <button className="btn primary" style={{ width: "100%" }} onClick={sendEmail} disabled={status?.kind === "loading"}>
               {status?.kind === "loading" ? <Loader2 size={16} className="spin" /> : <MessageSquareText size={16} />}
               Envoyer le récapitulatif

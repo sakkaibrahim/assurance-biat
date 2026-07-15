@@ -748,3 +748,153 @@ button { font: inherit; cursor: pointer; border: 0; }
   .riskEvents { grid-template-columns: 1fr; }
   .riskHeroStats { width: 100%; justify-content: space-between; }
 }
+
+/* ---------- Governorates “zone tiles” map ---------- */
+.govZoneGrid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.28);
+}
+.govTile{
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 12px 10px;
+  min-height: 62px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  color: #0c1330;
+  overflow: hidden;
+}
+.govTile.empty{
+  border-style: dashed;
+  background: rgba(255,255,255,0.25);
+  color: var(--ink-soft);
+  box-shadow: none;
+}
+.govTileName{
+  font-weight: 900;
+  font-size: 13px;
+  line-height: 1.15;
+  color: rgba(12,19,48,0.92);
+}
+.govTileVal{
+  font-weight: 900;
+  font-size: 13px;
+  color: rgba(12,19,48,0.96);
+  opacity: 0.92;
+}
+
+/* ---------- Map view ---------- */
+.mapWrap{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+.mapPanel{
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 18px;
+  align-items: start;
+}
+.mapPanel > .panelTitle{
+  grid-column: 1 / -1;
+}
+.mapLeft{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mapRight{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mapTotal{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(120deg, #2f6bff, #8b5cf6);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.mapTotal span{
+  font-size: 13px;
+  opacity: 0.92;
+  font-weight: 600;
+}
+.mapTotal strong{
+  font-size: 20px;
+  font-weight: 800;
+}
+.mapZoneList{
+  display: grid;
+  gap: 8px;
+  max-height: 520px;
+  overflow-y: auto;
+}
+.mapZoneRow{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  transition: transform 0.12s ease;
+}
+.mapZoneRow:hover{
+  transform: translateX(3px);
+  border-color: rgba(47,107,255,0.35);
+}
+.mapZoneDot{
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+.mapZoneName{
+  flex: 1;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+}
+.mapZoneMoney{
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--ink);
+  text-align: right;
+}
+.mapZonePct{
+  width: 42px;
+  text-align: right;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 1100px) {
+  .mapPanel{
+    grid-template-columns: 1fr;
+  }
+  .mapZoneList{
+    max-height: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .mapZoneList{
+    grid-template-columns: 1fr;
+  }
+}
