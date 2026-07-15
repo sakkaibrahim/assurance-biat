@@ -27,6 +27,13 @@ import {
   TrendingUp
 } from "lucide-react";
 import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  Tooltip as LeafletTooltip
+} from "react-leaflet";
+import {
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -946,52 +953,24 @@ function RiskView({ facets }) {
   );
 }
 
-/* ============ Tunisia map (city exposure) ============ */
-const CITY_COORDS = {
-  Tunis: [36.8065, 10.1815], Sfax: [34.7406, 10.76], Sousse: [35.8256, 10.6084],
-  Nabeul: [36.4514, 10.7357], Bizerte: [37.2744, 9.8739], Monastir: [35.7779, 10.8265],
-  Gabes: [33.8815, 10.097], Ariana: [36.8665, 10.1647], "Ben Arous": [36.7199, 10.213],
-  Manouba: [36.8105, 10.101],
+/* ============ Tunisia map (Leaflet interactive) ============ */
+const GOV_COORDS = {
+  Tunis: [36.8065, 10.1815], Ariana: [36.8665, 10.1647], "Ben Arous": [36.7199, 10.213],
+  Manouba: [36.8105, 10.101], Nabeul: [36.4514, 10.7357], Bizerte: [37.2744, 9.8739],
+  Zaghouan: [36.4028, 10.1425], Kef: [36.1742, 8.7049], Siliana: [36.0833, 9.3833],
+  Sousse: [35.8256, 10.6084], Monastir: [35.7779, 10.8265], Mahdia: [35.5047, 11.0622],
+  Sfax: [34.7406, 10.76], Gabès: [33.8815, 10.097], Medenine: [33.3549, 10.5038],
+  Tozeur: [33.9197, 8.1335], Kairouan: [35.6711, 10.1003], Gafsa: [34.425, 8.7839],
+  Kasserine: [35.1676, 8.8285], "Sidi Bouzid": [35.0378, 9.4858], Kebili: [33.7043, 8.9698],
 };
 
 function MapView({ governoratesExposure }) {
   const data = governoratesExposure.data || [];
   const maxExp = Math.max(1, ...data.map((d) => d.exposure || 0));
-
-  const layout = [
-    { key: "Tunis", r: 1, c: 1 },
-    { key: "Ariana", r: 1, c: 0 },
-    { key: "Ben Arous", r: 1, c: 2 },
-    { key: "Manouba", r: 2, c: 1 },
-
-    { key: "Nabeul", r: 0, c: 0 },
-    { key: "Bizerte", r: 0, c: 1 },
-    { key: "Zaghouan", r: 0, c: 2 },
-    { key: "Kef", r: 0, c: 3 },
-    { key: "Siliana", r: 1, c: 3 },
-
-    { key: "Sousse", r: 2, c: 3 },
-    { key: "Monastir", r: 3, c: 3 },
-    { key: "Mahdia", r: 3, c: 2 },
-
-    { key: "Sfax", r: 4, c: 1 },
-    { key: "Gabès", r: 5, c: 1 },
-    { key: "Medenine", r: 5, c: 2 },
-    { key: "Tozeur", r: 4, c: 0 },
-
-    { key: "Kairouan", r: 3, c: 1 },
-    { key: "Gafsa", r: 4, c: 2 },
-    { key: "Kasserine", r: 2, c: 2 },
-    { key: "Sidi Bouzid", r: 3, c: 0 },
-    { key: "Kebili", r: 5, c: 0 },
-
-    { key: "Autres", r: 6, c: 0 },
-  ];
+  const totalExposure = data.reduce((s, d) => s + (d.exposure || 0), 0);
 
   const byGov = Object.fromEntries(data.map((d) => [d.governorate, d]));
   const riskColor = (r) => (r > 0.55 ? "#ff4d5e" : r > 0.35 ? "#ffb020" : "#19c3b2");
-  const totalExposure = data.reduce((s, d) => s + (d.exposure || 0), 0);
-
   const sorted = [...data].sort((a, b) => (b.exposure || 0) - (a.exposure || 0));
 
   return (
@@ -1000,36 +979,41 @@ function MapView({ governoratesExposure }) {
         <div className="panelTitle">
           <div>
             <h2>Carte des gouvernorats</h2>
-            <span>exposition financière par zone</span>
+            <span>exposition financière par zone · interactive</span>
           </div>
           <span className="badge"><MapPin size={14} /> {data.length} gouvernorats</span>
         </div>
 
         <div className="mapLeft">
-          <div className="govZoneGrid" role="img" aria-label="Carte en zones des gouvernorats">
-            {layout.map((p) => {
-              const d = byGov[p.key] || null;
-              const exp = d?.exposure || 0;
-              const risk = d?.avg_risk || 0;
-              return (
-                <div
-                  key={`${p.key}-${p.r}-${p.c}`}
-                  className={`govTile ${!d ? "empty" : ""}`}
-                  style={{
-                    gridRow: p.r + 1,
-                    gridColumn: p.c + 1,
-                    background: d ? riskColor(risk) : "rgba(255,255,255,0.4)"
-                  }}
-                  title={d ? `${p.key}\nExposition: ${formatMoney(exp)}\nRisque moyen: ${Math.round(risk * 100)}%` : `${p.key}\nAucune donnée`}
-                >
-                  <div className="govTileName">{p.key}</div>
-                  {d ? <div className="govTileVal">{formatMoney(exp)}</div> : null}
-                </div>
-              );
-            })}
+          <div className="leafletMap" role="img" aria-label="Carte interactive Tunisie">
+            <MapContainer center={[34.0, 9.5]} zoom={7} scrollWheelZoom={true} style={{ height: 420, borderRadius: 14, border: "1px solid var(--line)" }}>
+              <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              {sorted.map((d) => {
+                const pos = GOV_COORDS[d.governorate];
+                if (!pos) return null;
+                const exp = d.exposure || 0;
+                const risk = d.avg_risk || 0;
+                const radius = 12 + (exp / maxExp) * 28;
+                return (
+                  <CircleMarker key={d.governorate} center={pos} radius={radius} pathOptions={{ color: riskColor(risk), fillColor: riskColor(risk), fillOpacity: 0.7, weight: 2 }}>
+                    <LeafletTooltip direction="top" offset={[0, -radius]} opacity={1}>
+                      <strong>{d.governorate}</strong><br />
+                      Exposition: {formatMoney(exp)}<br />
+                      Risque: {Math.round(risk * 100)}%
+                    </LeafletTooltip>
+                    <Popup>
+                      <strong>{d.governorate}</strong><br />
+                      Clients: {d.clients || 0}<br />
+                      Exposition: {formatMoney(exp)}<br />
+                      Risque moyen: {Math.round(risk * 100)}%
+                    </Popup>
+                  </CircleMarker>
+                );
+              })}
+            </MapContainer>
           </div>
           <p className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-            Couleur = risque moyen · Valeur = exposition financière · Carte “zones” (tuiles) par gouvernorat.
+            Cliquez sur un cercle pour les détails · Survol pour un aperçu · Couleur = risque · Taille = exposition.
           </p>
         </div>
 
@@ -1043,6 +1027,7 @@ function MapView({ governoratesExposure }) {
               <div className="mapZoneRow" key={d.governorate}>
                 <span className="mapZoneDot" style={{ background: riskColor(d.avg_risk || 0) }} />
                 <span className="mapZoneName">{d.governorate}</span>
+                <div className="mapZoneBar"><i style={{ width: `${((d.exposure || 0) / totalExposure) * 100}%`, background: riskColor(d.avg_risk || 0) }} /></div>
                 <span className="mapZoneMoney">{formatMoney(d.exposure || 0)}</span>
                 <span className="mapZonePct">{Math.round(((d.exposure || 0) / totalExposure) * 100)}%</span>
               </div>

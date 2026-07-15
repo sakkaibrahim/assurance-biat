@@ -712,14 +712,14 @@ button { font: inherit; cursor: pointer; border: 0; }
 .scenarioRow.active { font-weight: 800; }
 .scenarioName { width: 84px; text-transform: capitalize; font-size: 13px; color: var(--ink); }
 .scenarioBar { flex: 1; height: 10px; border-radius: 99px; background: #eef2ff; overflow: hidden; }
-.scenarioBar i { display: block; height: 100%; background: linear-gradient(90deg, var(--biat-blue), var(--violet)); border-radius: 99px; }
+.scenarioBar i { display: block; height: 100%; background: linear-gradient(90deg, var(--biat-blue), var(--violet)); border-radius: 99px; animation: growBar 1s ease-out both; }
 .scenarioMult { width: 42px; text-align: right; font-weight: 700; color: var(--biat-blue-deep); }
 
 .heatList { display: grid; gap: 10px; }
 .heatRow { display: flex; align-items: center; gap: 12px; }
 .heatCity { width: 120px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); flex: 0 0 auto; }
 .heatBar { flex: 1; height: 12px; border-radius: 99px; background: #eef2ff; overflow: hidden; }
-.heatBar i { display: block; height: 100%; background: linear-gradient(90deg, #ffb020, #ff4d5e); border-radius: 99px; }
+.heatBar i { display: block; height: 100%; background: linear-gradient(90deg, #ffb020, #ff4d5e); border-radius: 99px; animation: growBar 1s ease-out both; }
 .heatVal { width: 110px; text-align: right; font-weight: 700; font-size: 13px; color: var(--ink); flex: 0 0 auto; }
 
 /* ---------- Notifications ---------- */
@@ -897,4 +897,22 @@ button { font: inherit; cursor: pointer; border: 0; }
   .mapZoneList{
     grid-template-columns: 1fr;
   }
+}
+
+.mapZoneBar{
+  flex: 1;
+  height: 10px;
+  border-radius: 99px;
+  background: #eef2ff;
+  overflow: hidden;
+}
+.mapZoneBar i{
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  animation: growBar 1s ease-out both;
+}
+
+@keyframes growBar {
+  from { width: 0 !important; }
 }
