@@ -24,7 +24,14 @@ import {
   Users,
   X,
   ClipboardList,
-  TrendingUp
+  TrendingUp,
+  FileText,
+  Sun,
+  Moon,
+  Type,
+  Speaker,
+  Volume2,
+  VolumeX
 } from "lucide-react";
 import {
   MapContainer,
@@ -139,6 +146,7 @@ const NAV = [
   { id: "overview", label: "Vue d'ensemble", icon: LayoutDashboard },
   { id: "clients", label: "Clients", icon: Users },
   { id: "copilot", label: "Copilote", icon: Bot },
+  { id: "pdfchat", label: "PDF Chat", icon: FileText },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "map", label: "Carte Tunisie", icon: MapPin },
   { id: "risk", label: "Stress test", icon: CloudLightning },
@@ -150,6 +158,34 @@ const NAV = [
 export default function BriefingApp() {
   const [view, setView] = useState("overview");
   const [kiosk, setKiosk] = useState(false);
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem("biat_dark") === "1"; } catch { return false; }
+  });
+  const [fontSize, setFontSize] = useState(() => {
+    try { return parseInt(localStorage.getItem("biat_font") || "16", 10); } catch { return 16; }
+  });
+  const [ttsEnabled, setTtsEnabled] = useState(() => {
+    try { return localStorage.getItem("biat_tts") === "1"; } catch { return false; }
+  });
+
+  useEffect(() => {
+    document.documentElement.style.setProperty("--app-font", `${fontSize / 16}rem`);
+    try { localStorage.setItem("biat_font", String(fontSize)); } catch { /* ignore */ }
+  }, [fontSize]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    try { localStorage.setItem("biat_dark", dark ? "1" : "0"); } catch { /* ignore */ }
+  }, [dark]);
+
+  const speak = (text) => {
+    if (!ttsEnabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "fr-FR";
+    utter.rate = 1;
+    window.speechSynthesis.speak(utter);
+  };
 
   const summary = useApi("/dashboard/summary", {});
   const charts = useApi("/dashboard/charts", { products: [], cities: [], payments: [], claims: [] });
@@ -292,6 +328,7 @@ export default function BriefingApp() {
                 {view === "overview" && "Tableau de bord"}
                 {view === "clients" && "Annuaire des clients"}
                 {view === "copilot" && "Copilote conseiller"}
+                {view === "pdfchat" && "Lecteur PDF + IA"}
                 {view === "analytics" && "Analytics portefeuille"}
                 {view === "map" && "Carte de Tunisie"}
                 {view === "risk" && "Stress test risque"}
@@ -313,6 +350,18 @@ export default function BriefingApp() {
               )}
               <button className="btn ghost" onClick={() => setKiosk((k) => !k)} title="Mode présentation">
                 {kiosk ? <Minimize2 size={16} /> : <Maximize2 size={16} />} {kiosk ? "Quitter" : "Présenter"}
+              </button>
+              <button className="btn ghost" onClick={() => setDark((d) => !d)} title={dark ? "Mode clair" : "Mode sombre"} aria-label="Basculer mode sombre">
+                {dark ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button className="btn ghost" onClick={() => setFontSize((s) => Math.min(22, s + 2))} title="Agrandir le texte" aria-label="Agrandir le texte">
+                <Type size={16} /> A+
+              </button>
+              <button className="btn ghost" onClick={() => setFontSize((s) => Math.max(12, s - 2))} title="Réduire le texte" aria-label="Réduire le texte">
+                <Type size={14} /> A-
+              </button>
+              <button className="btn ghost" onClick={() => setTtsEnabled((t) => !t)} title={ttsEnabled ? "Désactiver la lecture vocale" : "Activer la lecture vocale"} aria-label="Basculer lecture vocale">
+                {ttsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
               </button>
               <button className="btn ghost" onClick={refreshAll}>
                 <RefreshCcw size={16} /> Actualiser
@@ -340,6 +389,7 @@ export default function BriefingApp() {
             />
           )}
           {view === "copilot" && <CopilotView />}
+          {view === "pdfchat" && <PdfChatView apiUrl={API} />}
           {view === "analytics" && <AnalyticsView charts={charts} />}
           {view === "map" && <MapView governoratesExposure={governoratesExposure} />}
           {view === "risk" && <RiskView facets={facets.data} />}
@@ -1297,6 +1347,127 @@ function AlertsView({ alerts, onOpenClient, ack, acknowledge }) {
             ) : (
               <div className="emptyState"><MessageSquareText size={18} /><div><strong>Aucun envoi</strong><p>Les envois apparaîtront ici.</p></div></div>
             )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ PDF Chat ============ */
+function PdfChatView({ apiUrl }) {
+  const [file, setFile] = useState(null);
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
+  const chatRef = useRef(null);
+
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.type !== "application/pdf") {
+      setError("Seuls les fichiers PDF sont acceptés.");
+      return;
+    }
+    setError("");
+    setFile(f);
+    setPdfUrl(URL.createObjectURL(f));
+    setMessages([]);
+  };
+
+  const ask = async () => {
+    if (!file || !question.trim() || loading) return;
+    setLoading(true);
+    setError("");
+    const q = question.trim();
+    setMessages((p) => [...p, { role: "user", text: q }]);
+    setQuestion("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("question", q);
+      const res = await fetch(`${apiUrl}/pdf/chat`, { method: "POST", body: form });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setMessages((p) => [...p, { role: "assistant", text: data.answer || "Pas de réponse." }]);
+    } catch (err) {
+      setError(err.message || "Échec de la requête.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  return (
+    <div className="pdfChatWrap">
+      <div className="panel pdfPanel">
+        <div className="panelTitle">
+          <div>
+            <h2>Lecteur PDF + IA</h2>
+            <span>Uploadez un PDF et posez des questions</span>
+          </div>
+          {file && <span className="badge"><FileText size={14} /> {file.name}</span>}
+        </div>
+
+        <div className="pdfLayout">
+          <div className="pdfViewer">
+            <div className="pdfToolbar">
+              <input type="file" accept="application/pdf" onChange={handleFile} ref={fileRef} aria-label="Sélectionner un PDF" />
+              <button className="btn primary" onClick={() => fileRef.current?.click()}>
+                <FileText size={16} /> {file ? "Changer de PDF" : "Choisir un PDF"}
+              </button>
+              {pdfUrl && (
+                <a className="btn ghost" href={pdfUrl} download target="_blank" rel="noreferrer">
+                  Télécharger
+                </a>
+              )}
+            </div>
+            {pdfUrl ? (
+              <iframe src={pdfUrl} title="PDF Viewer" className="pdfFrame" />
+            ) : (
+              <div className="pdfEmpty">
+                <FileText size={48} />
+                <p>Aucun PDF sélectionné</p>
+              </div>
+            )}
+          </div>
+
+          <div className="pdfChat">
+            <div className="chatLog" ref={chatRef}>
+              {messages.length === 0 && (
+                <div className="emptyState"><Bot size={18} /><div><strong>Prêt</strong><p>Uploadez un PDF puis posez une question.</p></div></div>
+              )}
+              {messages.map((m, i) => (
+                <div key={i} className={`bubbleRow ${m.role === "user" ? "userRow" : "assistantRow"}`}>
+                  {m.role === "assistant" && <div className="bubbleIco"><Bot size={16} /></div>}
+                  <div className={`bubble ${m.role === "user" ? "userBubble" : "assistantBubble"}`}>{m.text}</div>
+                </div>
+              ))}
+              {loading && (
+                <div className="bubbleRow assistantRow">
+                  <div className="bubbleIco"><Loader2 size={16} className="spin" /></div>
+                  <div className="bubble assistantBubble">Analyse en cours…</div>
+                </div>
+              )}
+            </div>
+            {error && <div className="notifStatus error" style={{ marginTop: 10 }}>{error}</div>}
+            <div className="composer">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ex: Résume les points clés de ce document…"
+                onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask(); }}
+              />
+              <button className="btn primary" onClick={ask} disabled={loading || !file}>
+                <Search size={16} /> Interroger le PDF
+              </button>
+            </div>
           </div>
         </div>
       </div>
