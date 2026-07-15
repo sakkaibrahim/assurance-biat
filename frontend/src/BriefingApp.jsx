@@ -89,11 +89,15 @@ function useApi(path, fallback) {
   const [data, setData] = useState(fallback);
   const [loading, setLoading] = useState(true);
   const load = async () => {
+    console.log(`useApi load: ${API}${path}`);
     setLoading(true);
     try {
       const res = await fetch(`${API}${path}`);
-      setData(await res.json());
-    } catch {
+      const json = await res.json();
+      console.log(`useApi success: ${path}`, json);
+      setData(json);
+    } catch (err) {
+      console.error(`useApi error: ${path}`, err);
       setData(fallback);
     } finally {
       setLoading(false);
@@ -195,6 +199,7 @@ export default function BriefingApp() {
   const governoratesExposure = useApi("/analytics/governorates-exposure", []);
 
   const refreshAll = () => {
+    console.log("refreshAll clicked");
     summary.load();
     charts.load();
     alerts.load();
